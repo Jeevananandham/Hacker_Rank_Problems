@@ -1,0 +1,63 @@
+@staticmethod
+    def get_all_courses(
+        db: Session,
+        page: int = 1,
+        page_size: int = 10,
+        course_name: str = None,
+        course_code: str = None,
+        sort_by: str = "id",
+        order: str = "asc"
+    ):
+
+        query = db.query(Course)
+
+        # ----------------------------
+        # Filtering
+        # ----------------------------
+
+        if course_name:
+
+            query = query.filter(
+                Course.course_name.contains(course_name)
+            )
+
+        if course_code:
+
+            query = query.filter(
+                Course.course_code.contains(course_code)
+            )
+
+        # ----------------------------
+        # Sorting
+        # ----------------------------
+
+        if hasattr(Course, sort_by):
+
+            column = getattr(Course, sort_by)
+
+            if order.lower() == "desc":
+
+                query = query.order_by(desc(column))
+
+            else:
+
+                query = query.order_by(asc(column))
+
+        # ----------------------------
+        # Pagination
+        # ----------------------------
+
+        total_records = query.count()
+
+        records = query.offset(
+            (page - 1) * page_size
+        ).limit(
+            page_size
+        ).all()
+
+        return {
+            "total_records": total_records,
+            "page": page,
+            "page_size": page_size,
+            "courses": records
+        }
